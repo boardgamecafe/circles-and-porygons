@@ -125,19 +125,6 @@ class Sidebar extends React.Component {
                         </div>
                     </div>
                 </div>
-                <button
-                    className="sidebar-menu-element btn-success"
-                    onClick={() => this.props.onTogglePrettify()}
-                >
-                    { this.props.onTogglePreffifyStatus() ? <div dangerouslySetInnerHTML={{__html: this.props.onTogglePreffifyStatus()}}/> : <div> Extra prettify </div> }
-                </button>
-                <button
-                    className="sidebar-menu-element btn-danger"
-                    onClick={() => this.props.onToggleHandDrawing()}
-                    disabled={this.props.onModelLoading() == "loading..."}
-                >
-                    { this.props.onModelLoading() ? <div dangerouslySetInnerHTML={{__html: this.props.onModelLoading()}}/> : <div> Hand Drawing </div> }
-                </button>
             </div>
         );
     }
