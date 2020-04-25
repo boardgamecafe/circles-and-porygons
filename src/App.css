@@ -1,5 +1,5 @@
 body{
-  font-family: 'Varela Round', sans-serif;
+  /*font-family: 'Varela Round', sans-serif;*/
 }
 
 /*
@@ -16,7 +16,7 @@ body{
 }
 
 .drawArea {
-  width: 100vw;
+  width: 100%;
   margin-top: 0;
   margin-right: 0;
   height: 100vh;

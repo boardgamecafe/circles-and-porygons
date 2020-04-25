@@ -9,7 +9,7 @@ import Slider from 'react-rangeslider'
 import 'react-rangeslider/lib/index.css'
 
 class Sidebar extends React.Component {
-    constructor(props){
+    constructor(props) {
         super(props);
         // Initialize React state - they trigger re-rendering
         this.state = {
@@ -18,8 +18,14 @@ class Sidebar extends React.Component {
             displayColorPickerFill: false,
             colorPickedFill: 'transparent',
             width: 5,
+            developers: [{
+                uid: 2,
+                name: "paul",
+                role: "CEO"
+            }]
         };
     }
+
 
     // Setup event handlers
     handleClickPicker = () => {
@@ -51,7 +57,35 @@ class Sidebar extends React.Component {
         this.props.onStrokePicked(width);
     };
 
+    handleSubmit = event => {
+        event.preventDefault();
+        let name = this.refs.name.value;
+        let role = this.refs.role.value;
+        let uid = this.refs.uid.value;
+
+        if (uid && name && role) {
+            const { developers } = this.state;
+            const devIndex = developers.findIndex(data => {
+                return data.uid === uid;
+            });
+            developers[devIndex].name = name;
+            developers[devIndex].role = role;
+            this.setState({ developers });
+        } else if (name && role) {
+            const uid = new Date().getTime().toString();
+            const { developers } = this.state;
+            developers.push({ uid, name, role });
+            this.setState({ developers });
+        }
+
+        this.refs.name.value = "";
+        this.refs.role.value = "";
+        this.refs.uid.value = "";
+    };
+
     render() {
+        const developers = this.state.developers;
+
         // Initialize inline styling to change dynamically the picker color
         const smallColoredSquare = {
             width: '14px',
@@ -70,6 +104,7 @@ class Sidebar extends React.Component {
         // Render the sidebar element by element
         return (
             <div className="sidebar" >
+                sidebar
                 <button
                     className="sidebar-menu-element btn-secondary"
                     onClick={() => this.props.onClearCanvas()}
@@ -84,14 +119,14 @@ class Sidebar extends React.Component {
                         className="square-container"
                         onClick={this.handleClickPicker}
                     >
-                        <div style={ smallColoredSquare } />
+                        <div style={smallColoredSquare} />
                     </div>
-                    { this.state.displayColorPicker ? <div className="popover">
-                        <div className="cover" onClick={ this.handleClosePicker }/>
+                    {this.state.displayColorPicker ? <div className="popover">
+                        <div className="cover" onClick={this.handleClosePicker} />
                         <TwitterPicker
-                            onChangeComplete={ this.handleChangeColor }
+                            onChangeComplete={this.handleChangeColor}
                         />
-                    </div> : null }
+                    </div> : null}
                 </div>
 
                 <div className="sidebar-menu-element picker-text-style row">
@@ -100,14 +135,14 @@ class Sidebar extends React.Component {
                         className="square-container"
                         onClick={this.handleClickPickerFill}
                     >
-                        <div style={ smallColoredSquareFill } />
+                        <div style={smallColoredSquareFill} />
                     </div>
-                    { this.state.displayColorPickerFill ? <div className="popover">
-                        <div className="cover" onClick={ this.handleClosePickerFill }/>
+                    {this.state.displayColorPickerFill ? <div className="popover">
+                        <div className="cover" onClick={this.handleClosePickerFill} />
                         <TwitterPicker
-                            onChangeComplete={ this.handleChangeColorFill }
+                            onChangeComplete={this.handleChangeColorFill}
                         />
-                    </div> : null }
+                    </div> : null}
                 </div>
                 <div className='slider orientation-reversed'>
                     <div className='slider-group'>
