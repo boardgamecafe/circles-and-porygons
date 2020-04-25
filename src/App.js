@@ -3,16 +3,22 @@ import React, { Component } from 'react';
 // Adding css styling
 import './App.css';
 // Using external libraries to use immutable collections
-import {List, updateIn, remove, Map} from 'immutable';
+import { List, updateIn, remove, Map } from 'immutable';
 // Import the two child components
 import Sidebar from "./Sidebar";
+import Playersbar from "./Playersbar";
+import Chat from "./Chat";
 import Drawing from "./Drawing";
 // Utility functions to process line-points of the shapes
 import relativeCoordinates from "./utils/relativeCoordinates";
 
+import Firebase from 'firebase';
+import firebaseConfig from './config';
+
 class App extends Component {
     constructor(props) {
         super(props);
+        Firebase.initializeApp(firebaseConfig);
         // Initialize React state - they trigger re-rendering
         this.state = {
             lines: new List(),
@@ -23,8 +29,8 @@ class App extends Component {
             colors: new List(),
             fills: new List(),
             widths: new List(),
-        };
-
+            developers: []
+        }
         // Setting up references for DIV elements manipulation
         this.canvasRef = React.createRef();
         // Binding function to make them accessible
@@ -35,19 +41,45 @@ class App extends Component {
     // Add eventListener to all the doucument
     componentDidMount() {
         document.addEventListener("mouseup", this.handleMouseUp);
+        this.getUserData();
+    }
+    componentDidUpdate(prevProps, prevState) {
+        // check on previous state
+        // only write when it's different with the new state
+        if (prevState !== this.state) {
+            this.writeUserData();
+        }
     }
     // Remove on component creation (best practice)
     componentWillUnmount() {
         document.removeEventListener("mouseup", this.handleMouseUp);
     }
+
+    writeUserData = () => {
+        Firebase.database()
+            .ref("/")
+            .set({
+                test: "hello"
+            });
+        console.log("DATA SAVED");
+    };
+
+    getUserData = () => {
+        let ref = Firebase.database().ref("/");
+        ref.on("value", snapshot => {
+            const state = snapshot.val();
+            this.setState(state);
+        });
+    };
+
     // If the user is drawing display and act accordingly the different cases
-    drawHandStroke(){
+    drawHandStroke() {
         const point = new Map({
-            x: Math.floor(this.currentHandCoordinates.x*this.handDrawingScaleFactorX),
-            y: Math.floor(this.currentHandCoordinates.y*this.handDrawingScaleFactorY),
+            x: Math.floor(this.currentHandCoordinates.x * this.handDrawingScaleFactorX),
+            y: Math.floor(this.currentHandCoordinates.y * this.handDrawingScaleFactorY),
         });
         // if first stroke
-        if (this.state.lines.size === 0){
+        if (this.state.lines.size === 0) {
             this.setState(prevState => ({
                 lines: prevState.lines.push(new List([point])),
                 colors: prevState.colors.push(prevState.strokeColor),
@@ -64,7 +96,7 @@ class App extends Component {
                 isDrawing: true
             }));
         } else if (this.state.lines.get(-1).size > 0 && this.state.isDrawing) {
-            if(this.handDrawing){
+            if (this.handDrawing) {
                 this.setState(prevState => ({
                     lines: updateIn(prevState.lines, [prevState.lines.size - 1], line => line.push(point)),
                 }));
@@ -93,7 +125,7 @@ class App extends Component {
 
     // Event handler for mouse drawing
     handleMouseDown(mouseEvent) {
-        if(mouseEvent.button!==0){
+        if (mouseEvent.button !== 0) {
             return;
         }
 
@@ -108,13 +140,13 @@ class App extends Component {
         }));
     }
     handleMouseMove(mouseEvent) {
-        if(!this.state.isDrawing){
+        if (!this.state.isDrawing) {
             return;
         }
 
         const point = relativeCoordinates(mouseEvent, this.canvasRef.current);
 
-        this.setState(prevState =>  ({
+        this.setState(prevState => ({
             lines: updateIn(prevState.lines, [prevState.lines.size - 1], line => line.push(point)),
         }));
     }
@@ -138,7 +170,7 @@ class App extends Component {
             }
         }
     }
-    
+
     // Clear the canvas of all the previous strokes
     clearCanvas = () => {
         this.setState({
@@ -154,7 +186,7 @@ class App extends Component {
             strokeColor: color,
         });
     };
-    
+
     // Change the fill color
     changeColorFill = (color) => {
         this.setState({
@@ -171,26 +203,39 @@ class App extends Component {
     // Render the application
     render() {
         return (
-            <div>
-                <Sidebar
-                    onColorPicked={this.changeColor}
-                    onColorPickedFill={this.changeColorFill}
-                    onClearCanvas={this.clearCanvas}
-                    onStrokePicked={this.changeStroke}
-                />
-                <div
-                    className="drawArea"
-                    ref={this.canvasRef}
-                    onMouseDown={this.handleMouseDown}
-                    onMouseMove={this.handleMouseMove}
-                >
-                    <Drawing
-                        lines={this.state.lines}
-                        color={this.state.colors}
-                        fill={this.state.fills}
-                        isDrawing={this.state.isDrawing}
-                        width={this.state.widths}
-                    />
+            <div className="container">
+                <div className="row">
+                    <div className="col-2">
+                        <div className="row">
+                            <Playersbar />
+                        </div>
+                        <div className="row">
+                            <Sidebar
+                                onColorPicked={this.changeColor}
+                                onColorPickedFill={this.changeColorFill}
+                                onClearCanvas={this.clearCanvas}
+                                onStrokePicked={this.changeStroke}
+                            />
+                        </div>
+                    </div>
+                    <div className="col-8 p-0">
+                        <div
+                            className="drawArea"
+                            ref={this.canvasRef}
+                            onMouseDown={this.handleMouseDown}
+                            onMouseMove={this.handleMouseMove}>
+                            <Drawing
+                                lines={this.state.lines}
+                                color={this.state.colors}
+                                fill={this.state.fills}
+                                isDrawing={this.state.isDrawing}
+                                width={this.state.widths}
+                            />
+                        </div>
+                    </div>
+                    <div className="col-2 p-0">
+                        <Chat />
+                        </div>
                 </div>
             </div>
         );
