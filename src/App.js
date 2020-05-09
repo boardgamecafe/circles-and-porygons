@@ -29,7 +29,8 @@ class App extends Component {
             colors: new List(),
             fills: new List(),
             widths: new List(),
-            developers: []
+            developers: [],
+            toSave: new List()
         }
         // Setting up references for DIV elements manipulation
         this.canvasRef = React.createRef();
@@ -41,13 +42,56 @@ class App extends Component {
     // Add eventListener to all the doucument
     componentDidMount() {
         document.addEventListener("mouseup", this.handleMouseUp);
+        this.resetCanvasDB();
         this.getUserData();
+        var canvasDbRef = Firebase.database().ref('gameRooms/1/canvas');
+        
+        canvasDbRef.on('value', (snapshot) => {
+            var canvas = snapshot.val();
+            console.log(this.state.isDrawing);
+            if (this.state.isDrawing == false && canvas && canvas.widths && canvas.lines && canvas.colors) {
+                console.log("received update")
+                let linesList = [];
+
+                for(var i = 0; i<canvas.lines.length; i++){
+                    var line = [];
+                    for(var j = 0; j<canvas.lines[i].length; j++){
+                        line.push(new Map({
+                            x: canvas.lines[i][j].x,
+                            y: canvas.lines[i][j].y
+                        }))
+                    }
+                    linesList.push(new List(line));
+                }
+                var finalList = new List(linesList);
+                this.setState(({
+                    lines: finalList,
+                    widths: new List(canvas.widths),
+                    colors: new List(canvas.colors),
+                    fills: new List(canvas.fills)
+                }))
+                //console.log(this.lines);
+                //Drawing(this.lines,this.colors, this.fills, this.isDrawing,)
+                //console.log(this.state)
+                /*this.lines = new List(canvas.line);
+                this.state.widths = new List(canvas.widths);
+                this.state.strokes = new List(canvas.strokes);*/
+            }else if(this.state.isDrawing == false && canvas == null){
+                this.setState({
+                    lines: new List(),
+                    colors: new List(),
+                    fills: new List(),
+                    widths: new List(),
+                });
+            }
+        });
     }
+
     componentDidUpdate(prevProps, prevState) {
         // check on previous state
         // only write when it's different with the new state
-        if (prevState !== this.state) {
-            this.writeUserData();
+        if (prevState !== this.state && this.state.isDrawing && this.state.lines && this.state.widths && this.state.colors) {
+            this.saveCanvas();
         }
     }
     // Remove on component creation (best practice)
@@ -55,14 +99,21 @@ class App extends Component {
         document.removeEventListener("mouseup", this.handleMouseUp);
     }
 
-    writeUserData = () => {
+    saveCanvas = () => {
         Firebase.database()
-            .ref("/")
+            .ref('/gameRooms/1/canvas')
             .set({
-                test: "hello"
+                lines: JSON.parse(JSON.stringify(this.state.lines)),
+                colors: JSON.parse(JSON.stringify(this.state.colors)),
+                widths: JSON.parse(JSON.stringify(this.state.widths)),
+                fills: JSON.parse(JSON.stringify(this.state.fills))
             });
         console.log("DATA SAVED");
     };
+
+    resetCanvasDB = () => {
+        Firebase.database().ref('/gameRooms/1/canvas').set({})
+    }
 
     getUserData = () => {
         let ref = Firebase.database().ref("/");
@@ -173,6 +224,7 @@ class App extends Component {
 
     // Clear the canvas of all the previous strokes
     clearCanvas = () => {
+        this.resetCanvasDB();
         this.setState({
             lines: new List(),
             colors: new List(),
@@ -180,6 +232,7 @@ class App extends Component {
             widths: new List(),
         });
     };
+
     // Change the stroke color
     changeColor = (color) => {
         this.setState({
@@ -235,7 +288,7 @@ class App extends Component {
                     </div>
                     <div className="col-2 p-0">
                         <Chat />
-                        </div>
+                    </div>
                 </div>
             </div>
         );

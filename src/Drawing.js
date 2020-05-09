@@ -1,5 +1,6 @@
 import {fromJS} from "immutable";
 import React from "react";
+import Firebase from 'firebase';
 
 /*
     Draw the polygons as SVG, recognizing
@@ -12,11 +13,9 @@ import React from "react";
  */
 
 export default function Drawing({ lines, color, fill, isDrawing, width }) {
-
     const toZip = fromJS([lines, color, fill, width]);
     const zipped = toZip.get(0).zip(...toZip.rest());
-    console.log("Hello");
-    // Dynamically decide whether to prettify the last (current) stroke
+    console.log("drawing");
     return (
         <svg className="drawing">
             {zipped.map((line, index) => (
