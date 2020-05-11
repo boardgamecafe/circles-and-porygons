@@ -12,13 +12,13 @@ import Drawing from "./Drawing";
 // Utility functions to process line-points of the shapes
 import relativeCoordinates from "./utils/relativeCoordinates";
 
-import Firebase from 'firebase';
+import firebase from 'firebase';
 import firebaseConfig from './config';
 
 class App extends Component {
     constructor(props) {
         super(props);
-        Firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(firebaseConfig);
         // Initialize React state - they trigger re-rendering
         this.state = {
             lines: new List(),
@@ -43,8 +43,8 @@ class App extends Component {
     componentDidMount() {
         document.addEventListener("mouseup", this.handleMouseUp);
         this.resetCanvasDB();
-        this.getUserData();
-        var canvasDbRef = Firebase.database().ref('gameRooms/1/canvas');
+        //this.getUserData();
+        var canvasDbRef = firebase.database().ref('gameRooms/1/canvas');
         
         canvasDbRef.on('value', (snapshot) => {
             var canvas = snapshot.val();
@@ -100,7 +100,7 @@ class App extends Component {
     }
 
     saveCanvas = () => {
-        Firebase.database()
+        firebase.database()
             .ref('/gameRooms/1/canvas')
             .set({
                 lines: JSON.parse(JSON.stringify(this.state.lines)),
@@ -112,16 +112,18 @@ class App extends Component {
     };
 
     resetCanvasDB = () => {
-        Firebase.database().ref('/gameRooms/1/canvas').set({})
+        firebase.database().ref('/gameRooms/1/canvas').set({})
     }
 
+    /*
     getUserData = () => {
-        let ref = Firebase.database().ref("/");
+        let ref = firebase.database().ref("/");
         ref.on("value", snapshot => {
             const state = snapshot.val();
             this.setState(state);
         });
     };
+    */
 
     // If the user is drawing display and act accordingly the different cases
     drawHandStroke() {
@@ -190,6 +192,7 @@ class App extends Component {
             isDrawing: true
         }));
     }
+
     handleMouseMove(mouseEvent) {
         if (!this.state.isDrawing) {
             return;
@@ -201,6 +204,7 @@ class App extends Component {
             lines: updateIn(prevState.lines, [prevState.lines.size - 1], line => line.push(point)),
         }));
     }
+
     handleMouseUp() {
         if (this.state.lines.last()) {
             let processedLine = this.state.lines.last(); //processPoints(this.state.lines.last());

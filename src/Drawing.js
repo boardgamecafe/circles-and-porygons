@@ -1,6 +1,6 @@
 import {fromJS} from "immutable";
 import React from "react";
-import Firebase from 'firebase';
+import firebase from 'firebase';
 
 /*
     Draw the polygons as SVG, recognizing
